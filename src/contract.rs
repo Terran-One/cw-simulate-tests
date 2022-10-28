@@ -80,8 +80,12 @@ pub mod execute {
                     res = res.add_message(CosmosMsg::Wasm(WasmMsg::Execute {
                         contract_addr: contract_addr.clone(),
                         msg: to_binary(&m)?,
-                        funds: vec![],
+                        funds: vec![]
                     }))
+                }
+
+                Command::BankMsg(m) => {
+                    res = res.add_message(CosmosMsg::Bank(m))
                 }
 
                 Command::Sub(id, m, reply_on) => {

@@ -1,5 +1,5 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::ReplyOn;
+use cosmwasm_std::{ReplyOn, CosmosMsg, BankMsg};
 use crate::state::Buffer;
 
 #[cw_serde]
@@ -18,6 +18,7 @@ pub enum Command {
     Ev(String, Vec<(String, String)>),
     Attr(String, String),
     Msg(ExecuteMsg),
+    BankMsg(BankMsg),
     Sub(u64, ExecuteMsg, ReplyOn),
     Data(Vec<u8>),
     Throw(String),
