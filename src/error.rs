@@ -1,4 +1,3 @@
-use std::fmt::Binary;
 use cosmwasm_std::{Event, StdError};
 use thiserror::Error;
 

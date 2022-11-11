@@ -1,1 +1,2 @@
 3df433c8c42be6bb322fbacbac2028e47c3faffd6b455191107951c7efa8135e  cw_simulate_tests-aarch64.wasm
+941eff19cc7c834a48bcfb05a7fbca6670f1ec8876e66ad015922722af1776da  cw_simulate_tests.wasm

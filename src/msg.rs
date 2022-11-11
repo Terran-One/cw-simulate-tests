@@ -1,5 +1,5 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::{ReplyOn, CosmosMsg, BankMsg};
+use cosmwasm_std::{BankMsg, Binary, ReplyOn, Coin};
 use crate::state::Buffer;
 
 #[cw_serde]
@@ -13,6 +13,13 @@ pub enum ExecuteMsg {
     Reset {},
     Query {},
     Debug { msg: String },
+    Instantiate {
+        code_id: u64,
+        admin: Option<String>,
+        msg: Binary,
+        funds: Vec<Coin>,
+        label: String,
+    },
 }
 
 #[cw_serde]

@@ -14,7 +14,7 @@ pub fn instantiate(
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
-    BUFFER.save(deps.storage, &Buffer::new());
+    BUFFER.save(deps.storage, &Buffer::new())?;
     Ok(Response::default())
 }
 
@@ -33,13 +33,20 @@ pub fn execute(
         ExecuteMsg::Reset { } => execute::reset(ctx),
         ExecuteMsg::Query { } => execute::query(ctx),
         ExecuteMsg::Debug { msg } => execute::debug(ctx, msg),
+        ExecuteMsg::Instantiate {
+            code_id,
+            admin,
+            msg,
+            funds,
+            label,
+        } => execute::instantiate(ctx, code_id, admin, msg, funds, label),
     }
 }
 
 pub struct ExecuteCtx<'a>(DepsMut<'a>, Env, MessageInfo);
 
 pub mod execute {
-    use cosmwasm_std::{CosmosMsg, Event, WasmMsg};
+    use cosmwasm_std::{CosmosMsg, Event, WasmMsg, Coin};
     use crate::msg::Command;
     use super::*;
 
@@ -128,6 +135,26 @@ pub mod execute {
         BUFFER.save(ctx.0.storage, &Buffer::new())?;
         Ok(Response::new())
     }
+
+    pub fn instantiate(
+        _ctx: ExecuteCtx,
+        code_id: u64,
+        admin: Option<String>,
+        msg: Binary,
+        funds: Vec<Coin>,
+        label: String,
+    ) -> Result<Response, ContractError> {
+        println!("execute - instantiate");
+        Ok(Response::new()
+            .add_message(CosmosMsg::Wasm(WasmMsg::Instantiate {
+                admin,
+                code_id,
+                msg,
+                funds,
+                label,
+            }))
+        )
+    }
 }
 
 
@@ -185,7 +212,6 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
 pub mod query {
     use crate::msg::GetBufferResponse;
-    use crate::msg::QueryMsg::GetBuffer;
     use super::*;
 
     pub fn buffer(deps: Deps) -> StdResult<GetBufferResponse> {
