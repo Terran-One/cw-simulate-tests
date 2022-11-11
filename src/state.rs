@@ -2,8 +2,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use cosmwasm_schema::{cw_serde};
 
-use cosmwasm_std::Addr;
-use cw_storage_plus::Item;
+use cosmwasm_std::{Addr, Coin};
+use cw_storage_plus::{Item, Map};
 
 
 #[cw_serde]

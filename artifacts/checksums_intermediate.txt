@@ -1,1 +1,1 @@
-f0e61b64d75458ff66383990a68b918b06bbc1e231aacf65a801c335c4a0e6c2  ./target/wasm32-unknown-unknown/release/cw_simulate_tests.wasm
+623e66a40c3f6343c6ffd82bf409ce3c76467bcca814cb289fd1dfcd725bed0c  ./target/wasm32-unknown-unknown/release/cw_simulate_tests.wasm

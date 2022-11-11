@@ -11,6 +11,8 @@ pub enum ExecuteMsg {
     Pop {},
     Run { program: Vec<Command> },
     Reset {},
+    Query {},
+    Debug { msg: String },
 }
 
 #[cw_serde]

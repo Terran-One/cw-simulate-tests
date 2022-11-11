@@ -100,29 +100,31 @@ mod tests {
             Command::Throw(s.to_string())
         }
 
+        fn data(v: Vec<u8>) -> Command {
+            Command::Data(v)
+        }
+
         #[test]
         fn test_run() {
             let (mut app, cw_template_contract) = proper_instantiate();
 
-            // A1 -> [S1, S2, M1]
-            // S1 -> [N1]
-            // S2 -> []
-            // M1 -> []
-
-            let s1 = run(vec![push("N1")]);
-            let s2 = run(vec![]);
-            let m1 = push("M1");
-
-            let msg = ExecuteMsg::Run {
+            // { push: { data: string }} -> adds 1 to end of buffer
+            // { run: { program: Vec<Command> }} -> runs the commands listed in program
+            let msg = ExecuteMsg::Run { 
                 program: vec![
-                    sub(1, s1, ReplyOn::Always),
-                    msg(m1),
-                    msg(ExecuteMsg::Run { program: vec![throw("revert")]})
+                    Command::Msg(ExecuteMsg::Run {
+                        program: vec![
+                            Command::Msg(ExecuteMsg::Push { data: "A".to_string() }),
+                            Command::Msg(ExecuteMsg::Push { data: "B".to_string() }),
+                        ]
+                    }),
+                    Command::Msg(ExecuteMsg::Push { data: "C".to_string() })
                 ]
             };
-
+            
             let cosmos_msg = cw_template_contract.call(msg).unwrap();
             let res = app.execute(Addr::unchecked(USER), cosmos_msg);
+            println!("{:#?}", res.unwrap().data);
 
             let res: GetBufferResponse = app.wrap().query_wasm_smart(&cw_template_contract.0, &QueryMsg::GetBuffer {}).unwrap();
             println!("{:?}", res);

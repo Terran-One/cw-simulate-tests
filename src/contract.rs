@@ -31,6 +31,8 @@ pub fn execute(
         ExecuteMsg::Pop {} => execute::pop(ctx),
         ExecuteMsg::Run { program } => execute::run(ctx, program),
         ExecuteMsg::Reset { } => execute::reset(ctx),
+        ExecuteMsg::Query { } => execute::query(ctx),
+        ExecuteMsg::Debug { msg } => execute::debug(ctx, msg),
     }
 }
 
@@ -106,8 +108,19 @@ pub mod execute {
                 }
             }
         }
-
+        
         Ok(res)
+    }
+
+    pub fn query(ctx: ExecuteCtx) -> Result<Response, ContractError> {
+        let _res = ctx.0.querier.query_all_balances(ctx.2.sender)?;
+        let _res = ctx.0.querier.query_wasm_smart(ctx.1.contract.address, &QueryMsg::GetBuffer {})?;
+        Ok(Response::new())
+    }
+
+    pub fn debug(ctx: ExecuteCtx, msg: String) -> Result<Response, ContractError> {
+        ctx.0.api.debug(msg.as_str());
+        Ok(Response::new())
     }
 
     pub fn reset(ctx: ExecuteCtx) -> Result<Response, ContractError> {
@@ -186,7 +199,7 @@ mod tests {
     use super::*;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::{coins, from_binary};
-    use crate::msg::GetBufferResponse;
+    use crate::msg::{GetBufferResponse, Command};
 
     #[test]
     fn proper_initialization() {
@@ -212,14 +225,49 @@ mod tests {
         let info = mock_info("creator", &coins(2, "token"));
         let _res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
 
-        // beneficiary can release it
-        let info = mock_info("anyone", &coins(2, "token"));
-        let msg = ExecuteMsg::Push { data: "test".to_string() };
-        let _res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
+        for _ in 1..5 {
+            let info = mock_info("anyone", &coins(2, "token"));
+            let msg = ExecuteMsg::Push { data: "test".to_string() };
+            let _res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
+        }
 
-        // should increase counter by 1
         let res = query(deps.as_ref(), mock_env(), QueryMsg::GetBuffer {}).unwrap();
         let value: GetBufferResponse = from_binary(&res).unwrap();
+        println!("{:?}", value);
+    }
+
+    #[test]
+    fn run() {
+        let mut deps = mock_dependencies();
+
+        let msg = InstantiateMsg { };
+        let info = mock_info("creator", &coins(2, "token"));
+        let _res = instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
+
+        // { push: { data: string }} -> adds 1 to end of buffer
+        // { run: { program: Vec<Command> }} -> runs the commands listed in program
+
+        let msg = ExecuteMsg::Push {
+            data: "A".to_string()
+        };
+        
+        
+        ExecuteMsg::Run { 
+            program: vec![
+                Command::Msg(ExecuteMsg::Push { data: "A".to_string() }),
+                Command::Msg(ExecuteMsg::Push { data: "B".to_string() }),
+                Command::Msg(ExecuteMsg::Push { data: "C".to_string() }),
+            ]
+        };
+
+
+        let res = execute(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
+
+        let q_res = query(deps.as_ref(), mock_env(), QueryMsg::GetBuffer {}).unwrap();
+        let GetBufferResponse{ buffer }: GetBufferResponse = from_binary(&q_res).unwrap();
+
+        println!("{}", res.messages.len());
+        println!("{:?}", buffer);
     }
 
 }
